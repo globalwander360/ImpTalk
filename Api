@@ -1,0 +1,139 @@
+Task: Analyse Existing C-API-Specs for Manual Document Removal Feature
+
+I need to introduce a new feature called "Manual Document Removal" in our existing DPW application.
+
+Before making any changes, thoroughly analyse the existing C-API-Specs repository and understand its current structure and conventions.
+
+1. Business Requirement
+
+Users should be able to remove one or multiple documents attached to a particular Event ID / Request ID.
+
+Expected functionality:
+
+1. User opens Document Management.
+2. User selects one or multiple documents.
+3. User clicks the Delete button.
+4. A confirmation popup appears.
+5. If the user selects No, nothing happens.
+6. If the user selects Yes, the backend receives the removal request.
+7. The selected documents immediately disappear from Document Management.
+8. The removal operation is recorded in the existing Audit Trail.
+
+Permission required:
+
+- Permission Name: Document removal
+- Permission Key: removalDocument
+
+Important business constraints:
+
+- Actual documents are stored and managed by DBW Docstore.
+- DPW Controller manages business operations and contains the existing Audit Rev entity.
+- The organisation has an existing 90-day permanent document deletion process.
+- Removing a document from an event/request must not physically delete the original document.
+- The same document might potentially be associated with multiple events/requests. This needs investigation.
+
+2. Analyse Existing API Specification Structure
+
+First understand the complete relevant structure of this repository.
+
+Investigate:
+
+- API specification file formats.
+- OpenAPI/Swagger definitions, if applicable.
+- Existing API naming conventions.
+- Existing endpoint naming conventions.
+- Request and response schemas.
+- Common headers and parameters.
+- Authentication and authorization definitions.
+- Standard error response structures.
+- Existing document-related API definitions.
+- Existing Event/Request-related API definitions.
+
+3. Investigate Existing Document APIs
+
+Search for existing APIs related to:
+
+- Document Management.
+- Fetching documents associated with an event.
+- Fetching documents associated with a request.
+- Uploading documents.
+- Attaching documents to an event/request.
+- Removing or deleting documents, if available.
+
+Identify the exact specification files, endpoint paths, HTTP methods and schemas.
+
+Understand how the frontend and backend currently communicate through these contracts.
+
+4. Evaluate the New Removal API
+
+Based on existing conventions, investigate the most appropriate API design for:
+
+- Removing a single document.
+- Removing multiple documents.
+- Identifying the relevant Event ID / Request ID.
+- Passing selected document IDs.
+- Returning appropriate success and failure responses.
+
+Do not assume that a DELETE endpoint is necessarily required. Evaluate the existing project conventions first.
+
+5. Permission Investigation
+
+Check whether existing API specifications include permission-related definitions or authorization scopes.
+
+Determine how "removalDocument" should be represented, if applicable.
+
+Do not hardcode permission handling into the API specification unless that matches the existing architecture.
+
+6. Compatibility and Reusability
+
+Before proposing new API definitions:
+
+- Check whether an existing endpoint can be extended.
+- Check whether existing request/response schemas can be reused.
+- Avoid duplicate endpoints.
+- Avoid unnecessary new DTO schemas.
+- Maintain backward compatibility.
+- Follow existing versioning conventions.
+
+7. Expected Output
+
+Provide:
+
+A. Existing C-API-Specs repository structure.
+
+B. Relevant document-related API specifications.
+
+C. Existing Event/Request document retrieval endpoints.
+
+D. Existing upload and attachment endpoints.
+
+E. Existing removal/deletion endpoints, if any.
+
+F. Recommended API contract for Manual Document Removal.
+
+G. Proposed HTTP method and endpoint.
+
+H. Proposed request and response schemas.
+
+I. Required permission-related changes, if applicable.
+
+J. Exact specification files that would need modification.
+
+K. Dependencies or information required from DPW Controller and DBW Docstore.
+
+L. Potential backward compatibility and regression risks.
+
+8. Strict Instructions
+
+This is an ANALYSIS-ONLY task.
+
+- Do not modify any specification files.
+- Do not create new endpoints.
+- Do not generate new schemas.
+- Do not modify existing API contracts.
+- Do not assume backend implementation details.
+- Reuse existing project conventions wherever possible.
+
+Analyse the actual repository and provide references to existing files and definitions.
+
+Wait for my approval before making any changes.
