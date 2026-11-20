@@ -1,0 +1,169 @@
+Task: Analyse Existing DPW Front Architecture for Manual Document Removal
+
+The C-API-Specs analysis has been completed. Now I want to analyse the existing DPW Front codebase before implementing the Manual Document Removal feature.
+
+1. Business Requirement
+
+Users should be able to remove one or multiple documents attached to a particular Event ID / Request ID.
+
+Expected behaviour:
+
+1. Display existing attached documents.
+
+2. Allow selection of one or multiple documents.
+
+3. Display a Delete button only if the user has the "removalDocument" permission.
+
+4. On clicking Delete, show a confirmation popup:
+   
+   "Do you confirm the removal of this document?"
+
+5. If the user selects No, close the popup without making any API call.
+
+6. If the user selects Yes, invoke the approved removal API.
+
+7. On successful removal, refresh the document list.
+
+8. Removed documents should immediately disappear from Document Management.
+
+2. Analyse Existing Project Structure
+
+First understand the existing frontend architecture.
+
+Identify:
+
+- Document Management modules and components.
+- Relevant pages and component hierarchy.
+- Routing and state management.
+- API integration architecture.
+- DTOs and interfaces.
+- Common UI components.
+- Existing error-handling and notification mechanisms.
+- Unit and integration testing structure.
+
+3. Document Management Investigation
+
+Find the exact implementation responsible for:
+
+- Fetching documents.
+- Displaying attached documents.
+- Maintaining Event ID / Request ID.
+- Maintaining document IDs.
+- Document selection.
+- Single and multiple selection.
+- Refreshing the document list.
+- Pagination, filtering and sorting.
+
+Determine whether existing selection functionality can be reused.
+
+4. Permission Investigation
+
+Investigate how existing user permissions are handled.
+
+Find:
+
+- Permission retrieval mechanism.
+- Permission-checking services or utilities.
+- Existing conditional button visibility.
+- How new permissions are integrated.
+
+New permission:
+
+"removalDocument"
+
+Do not hardcode this permission. Follow existing permission conventions.
+
+5. Confirmation Popup Investigation
+
+Find existing confirmation dialog implementations.
+
+Identify:
+
+- Existing component name.
+- How messages are passed.
+- Yes/No callback implementation.
+- Loading state handling.
+- Error handling.
+
+Reuse existing components rather than creating new ones.
+
+6. API Integration Investigation
+
+Review the C-API-Specs analysis and identify how existing API specifications are consumed in DPW Front.
+
+Investigate:
+
+- Existing document API clients.
+- API request and response models.
+- Generated API clients, if applicable.
+- Existing document retrieval and attachment APIs.
+- How a new removal API would be integrated.
+
+Do not invent an endpoint or request structure.
+
+If the final approved API contract is not yet available, clearly identify the frontend dependencies.
+
+7. Edge Cases
+
+Evaluate:
+
+- Single document selection.
+- Multiple document selection.
+- Empty selection.
+- User without permission.
+- API failure.
+- Duplicate submissions.
+- Successful removal.
+- Pagination and list refresh.
+- Already removed documents.
+
+8. Engineering Guidelines
+
+- Reuse existing modules and components.
+- Follow existing coding and naming conventions.
+- Reuse existing API services and permission utilities.
+- Reuse existing confirmation dialogs.
+- Avoid unnecessary new dependencies.
+- Avoid duplicate functionality.
+- Maintain backward compatibility.
+- Do not modify unrelated functionality.
+
+9. Expected Analysis Report
+
+Provide:
+
+A. Relevant frontend architecture.
+
+B. Document Management component details.
+
+C. Document retrieval flow.
+
+D. Selection implementation.
+
+E. Existing confirmation dialog.
+
+F. Permission-checking mechanism.
+
+G. API integration mechanism.
+
+H. Exact files requiring modification.
+
+I. Recommended implementation approach.
+
+J. Dependencies on backend and API contract.
+
+K. Potential regression risks.
+
+10. Strict Restrictions
+
+ANALYSIS ONLY.
+
+- Do not modify existing files.
+- Do not create new components.
+- Do not create new API services.
+- Do not install dependencies.
+- Do not implement the Delete functionality yet.
+
+Analyse the actual codebase and provide exact file and method references.
+
+Wait for my approval before implementing anything.
