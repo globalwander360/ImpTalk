@@ -1,0 +1,250 @@
+Task: Analyse DPW Controller for Manual Document Removal Feature
+
+I need to implement a new feature called "Manual Document Removal" in the existing DPW application.
+
+The initial analysis of C-API-Specs and DPW Front has been completed.
+
+Now thoroughly analyse the existing DPW Controller codebase to understand how this feature should be implemented using the existing architecture.
+
+IMPORTANT: Do not introduce a new architecture. Reuse existing modules, services, entities, repositories, utilities and design patterns wherever possible.
+
+1. Business Requirement
+
+Users should be able to remove one or multiple documents attached to a particular Event ID / Request ID.
+
+Expected workflow:
+
+1. User selects one or multiple documents in Document Management.
+2. User clicks Delete.
+3. Frontend displays a confirmation popup.
+4. If the user selects No, no backend API should be called.
+5. If the user selects Yes, the frontend invokes the approved removal API.
+6. Backend validates the user's permission.
+7. Backend removes the selected document association from the specified Event ID / Request ID.
+8. Removed documents immediately disappear from Document Management.
+9. The removal operation must be recorded in the existing Audit Trail.
+
+Permission:
+
+- Name: Document removal
+- Key: removalDocument
+
+2. Existing Microservices Architecture
+
+Our application consists of:
+
+- DPW Controller: Business logic and existing Audit Rev entity.
+- DBW Docstore: Actual document storage and document lifecycle management.
+- C-API-Specs: API contracts and specifications.
+- DPW Front: Frontend application.
+- DPW Referential: Reference data and potentially permission configuration.
+
+Important business constraint:
+
+The organisation has an existing document deletion/retention process of approximately 90 days.
+
+When a document is removed from a particular Event ID / Request ID:
+
+- It must immediately disappear from that event/request's Document Management screen.
+- The original document must not be physically deleted by this operation.
+- The existing 90-day retention and permanent deletion mechanism must remain unaffected.
+- Other active associations of the same document must not be affected.
+
+3. Analyse Existing Project Architecture
+
+Explore the relevant project structure.
+
+Identify:
+
+- Packages and modules.
+- Controllers and REST endpoints.
+- Service interfaces and implementations.
+- Repository interfaces and implementations.
+- Entity classes and relationships.
+- DTOs and request/response models.
+- Exception-handling mechanisms.
+- Security and authorization.
+- Transaction management.
+- Logging conventions.
+- Database migration conventions.
+- Existing testing structure.
+
+Focus on the modules relevant to document management, event/request management and audit functionality.
+
+4. Document Association Investigation
+
+This is a critical part of the analysis.
+
+Identify:
+
+1. Where Event ID / Request ID is maintained.
+2. How documents are associated with events or requests.
+3. Whether the association is stored in DPW Controller or DBW Docstore.
+4. Which entity represents the association.
+5. Which database table stores the association.
+6. Which fields uniquely identify an association.
+7. Whether a document can be attached to multiple events/requests.
+8. Which APIs and repository queries fetch associated documents.
+9. How existing attachment and retrieval operations work.
+10. Whether an existing inactive/deleted flag is available.
+
+Determine the correct location for logical removal.
+
+Do not assume that a new table is required.
+
+5. Existing Audit Rev Investigation
+
+We already have an Audit Rev entity in DPW Controller.
+
+Analyse its actual implementation.
+
+Identify:
+
+- Audit Rev entity fields.
+- Audit repository.
+- Audit service.
+- Existing audit creation methods.
+- How user identity is captured.
+- How timestamps are populated.
+- How business actions are recorded.
+- Existing document-related audit events, if any.
+
+Determine how document removal should integrate with this existing audit implementation.
+
+Do not create a separate audit table or audit framework unless the existing implementation cannot satisfy the requirement.
+
+6. Permission Investigation
+
+Investigate the existing authorization mechanism.
+
+Identify:
+
+- How user permissions are retrieved.
+- How roles and permissions are validated.
+- Existing permission-checking utilities or services.
+- How controller endpoints enforce authorization.
+- Whether permissions are retrieved from DPW Referential.
+
+Determine how "removalDocument" should be integrated.
+
+Do not hardcode permissions or introduce a duplicate authorization mechanism.
+
+7. Document Removal and Soft Delete Design
+
+Evaluate the best implementation using existing project conventions.
+
+Consider:
+
+- Reusing an existing soft-delete field.
+- Extending the existing event-document association entity.
+- Adding removal metadata only if necessary.
+- Excluding removed associations from existing document retrieval queries.
+- Preventing repeated removal operations.
+- Validating that requested documents belong to the specified event/request.
+
+Important:
+
+The logical removal must happen at the event-document association level, if that is where the relationship is owned.
+
+Do not physically delete the original document from DBW Docstore.
+
+8. DBW Docstore Integration Investigation
+
+Identify whether DPW Controller currently communicates with DBW Docstore.
+
+Investigate:
+
+- Existing service clients.
+- REST clients or Feign clients.
+- Existing document-related integration methods.
+- Document identifiers and metadata.
+- Existing deletion/retention integration.
+
+Determine whether event-level removal requires communication with DBW Docstore or whether it can be handled entirely through the existing association mechanism.
+
+Do not introduce a new integration unless technically required.
+
+9. Review Completed Analysis From Other Services
+
+Use the existing project knowledge and the API/frontend analysis findings where available.
+
+Check compatibility with:
+
+- C-API-Specs document API conventions.
+- DPW Front document selection and API integration patterns.
+
+If those analysis findings are not available in this repository, identify what information is still required.
+
+Do not invent endpoint paths or DTO structures.
+
+10. Engineering Expectations
+
+Follow these mandatory engineering principles:
+
+1. Reuse existing code wherever feasible.
+2. Follow existing package and module structure.
+3. Follow existing naming conventions.
+4. Reuse existing entities and repositories.
+5. Reuse existing audit and permission mechanisms.
+6. Avoid unnecessary new classes and abstractions.
+7. Avoid introducing unnecessary dependencies.
+8. Preserve backward compatibility.
+9. Follow existing transaction management.
+10. Maintain existing coding and testing standards.
+11. Do not modify unrelated business functionality.
+12. Introduce new database changes only when justified by the existing design.
+
+Prefer the smallest maintainable implementation that satisfies the business requirement.
+
+11. Expected Analysis Report
+
+Provide a detailed report with:
+
+A. Existing relevant project architecture.
+
+B. Document-related entities and database tables.
+
+C. Event/Request-to-Document association flow.
+
+D. Existing document retrieval and attachment implementation.
+
+E. Existing Audit Rev implementation.
+
+F. Existing permission validation mechanism.
+
+G. Existing DBW Docstore integration.
+
+H. Existing soft-delete or logical removal mechanisms.
+
+I. Recommended technical implementation.
+
+J. Exact files and classes that would need modification.
+
+K. Proposed database changes, if required, with justification.
+
+L. API integration requirements.
+
+M. Transaction and audit considerations.
+
+N. Potential backward compatibility and regression risks.
+
+O. Information still required from DBW Docstore or DPW Referential.
+
+12. Strict Restrictions
+
+THIS IS AN ANALYSIS-ONLY TASK.
+
+- Do not modify existing source files.
+- Do not create new Java classes.
+- Do not create database migration scripts.
+- Do not modify API specifications.
+- Do not implement any endpoint.
+- Do not add new dependencies.
+- Do not introduce a new deletion queue.
+- Do not physically delete any documents.
+
+Analyse the actual codebase and provide references to the existing classes, methods, repositories and tables.
+
+Clearly distinguish confirmed findings from assumptions.
+
+Wait for my approval before proceeding with implementation.
