@@ -1,0 +1,165 @@
+DBW Docstore – Analyse and Implement Manual Document Removal and 90-Day Permanent Deletion
+
+Work only within the DBW Docstore repository.
+
+Objective
+
+Implement the document lifecycle required for manual document removal and permanent deletion after 90 days.
+
+Important business rule: The same physical document can be associated with multiple Event IDs or Request IDs. Removing a document from one association must not make it unavailable to other active associations.
+
+Phase 1 – Analyse the existing codebase
+
+Before making any changes, inspect:
+
+1. Document entities, database tables, repositories and services.
+2. Existing document upload, retrieval, association and deletion flows.
+3. Actual physical document storage mechanism.
+4. Existing database configurations, including separate database connections.
+5. Database migration conventions and scripts.
+6. Existing scheduled jobs, background processing and retry mechanisms.
+7. Existing communication/integration with DPW Controller.
+8. How Docstore can reliably determine whether a document still has active Event/Request associations.
+9. Existing transaction and concurrency-handling patterns.
+
+Do not assume table names, entity names, API contracts or database ownership. Discover them from the source code.
+
+Analysis phase must not modify any files.
+
+After analysis, provide:
+
+- Existing architecture and relevant flow.
+- Exact files/classes/tables involved.
+- Which service owns the Event/Request-to-document association.
+- How Docstore can determine the number of active associations.
+- How the separate queue database is currently configured or how it should fit existing conventions.
+- Proposed implementation changes.
+- Any dependencies or unresolved questions.
+
+Wait for approval before proceeding with implementation.
+
+Phase 2 – Implement document lifecycle
+
+After approval, implement the following behaviour:
+
+A. Association-aware removal
+
+- Never globally soft-delete a physical document when only one Event/Request association is removed.
+- Use the existing association-level soft-deletion mechanism if that association is owned by Docstore.
+- If association ownership belongs to another service, integrate using the existing communication pattern. Do not create a duplicate association table.
+- Ensure the document remains accessible through every other active association.
+- Only initiate permanent-deletion eligibility when the last active association has been removed.
+
+Do not introduce a new removal-history table. Individual manual removal auditing is handled through the existing Audit Rev mechanism in DPW Controller.
+
+B. Document lifecycle
+
+When the last active association is removed:
+
+- Move the document into a pending-deletion lifecycle state, using existing lifecycle conventions or introducing an appropriate state if necessary.
+- Record the backend-generated deletion timestamp.
+- Create one document-level deletion queue entry.
+
+If the document becomes associated with another Event/Request during the 90-day retention period:
+
+- Cancel its pending deletion.
+- Restore its active lifecycle.
+- Ensure the scheduled process cannot permanently delete it.
+
+C. Separate deletion queue database
+
+Create the queue table in the separate database.
+
+Proposed table name:
+
+"DPW_DOCUMENT_DELETION_QUEUE"
+
+Suggested fields, subject to existing project conventions:
+
+- ID
+- DOCUMENT_ID
+- DELETED_AT
+- DELETE_AFTER
+- STATUS
+- PURGED_AT
+- RETRY_COUNT
+- LAST_ERROR
+- CREATED_AT
+- UPDATED_AT
+
+Use professional names and the DPW_ prefix for every newly created table.
+
+Use existing migration tools and database configuration patterns. Do not hardcode credentials or introduce an unnecessary database connection framework.
+
+The queue must contain one entry per physical document pending permanent deletion, not one entry per association removal.
+
+D. Retention calculation
+
+Calculate the retention deadline on the backend:
+
+"DELETE_AFTER = DELETED_AT + 90 calendar days"
+
+Use the same deletion timestamp for both fields. Never accept the retention deadline from the frontend.
+
+E. Scheduled permanent deletion
+
+Implement a scheduled process following existing project conventions.
+
+It must:
+
+1. Identify pending queue records whose DELETE_AFTER is less than or equal to the current timestamp.
+2. Claim records safely to prevent multiple workers processing the same document.
+3. Recheck that the document has no active associations.
+4. Recheck that the document has not been reattached or restored.
+5. Permanently delete the original binary from its actual storage.
+6. Update the queue status and PURGED_AT after successful deletion.
+7. On failure, update FAILED status or the project's equivalent, increment RETRY_COUNT and capture LAST_ERROR.
+8. Support safe retries without accidentally deleting a document that has become active again.
+
+F. Cross-database consistency
+
+The queue is in a separate database.
+
+Inspect existing transaction and integration patterns before implementation. Do not assume that a single "@Transactional" transaction covers both databases.
+
+Use an existing reliable mechanism if available. Otherwise, propose and implement an appropriate outbox/retryable workflow to prevent missed or inconsistent deletion queue entries.
+
+Naming and coding conventions
+
+- Follow existing DBW Docstore architecture and coding style.
+- Reuse existing entities, services, repositories, utilities and configurations.
+- Use DPW_ prefix for every newly created database table.
+- Use PascalCase for Java class names.
+- Use clear status names and existing enum conventions.
+- Do not rename existing production tables or columns unnecessarily.
+- Do not add redundant fields or unnecessary abstractions.
+
+Testing requirements
+
+Add or update tests covering:
+
+1. Removing one association while another association remains active.
+2. Removing the last active association.
+3. Correct 90-day retention calculation.
+4. Document reattachment before the retention deadline.
+5. Cancellation of pending deletion.
+6. Eligible document permanent deletion.
+7. Document not being deleted if an active association exists at processing time.
+8. Concurrent scheduled processing.
+9. Storage deletion failure and retry.
+10. Queue database failure and recovery.
+11. Idempotent processing.
+
+Final response
+
+After implementation, report:
+
+- Files created and modified.
+- Database migrations and queue schema.
+- Changes to document lifecycle.
+- Scheduled job behaviour.
+- Cross-database consistency approach.
+- Tests added and their results.
+- Any unresolved dependencies on DPW Controller or another service.
+
+Do not modify unrelated functionality. Do not invent missing architecture. If an essential dependency cannot be verified, stop and explain it instead of implementing an unsafe assumption.
